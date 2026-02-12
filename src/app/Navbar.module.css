@@ -3,31 +3,66 @@
   justify-content: space-between;
   align-items: center;
   padding: 1rem 2rem;
-  background: #18181b;
+  background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
   color: #fff;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
   position: sticky;
   top: 0;
   z-index: 100;
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
+
 .logo span {
   font-size: 1.5rem;
-  font-weight: bold;
-  letter-spacing: 1px;
-  color: #38bdf8;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  cursor: pointer;
+  transition: transform 0.2s;
 }
+
+.logo span:hover {
+  transform: scale(1.05);
+}
+
 .navLinks {
   list-style: none;
   display: flex;
   gap: 2rem;
   margin: 0;
 }
+
 .navLinks li a {
-  color: #fff;
+  color: #e2e8f0;
   text-decoration: none;
   font-weight: 500;
-  transition: color 0.2s;
+  transition: all 0.3s;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  position: relative;
 }
+
+.navLinks li a::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 0;
+  height: 2px;
+  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+  transition: all 0.3s;
+  transform: translateX(-50%);
+}
+
 .navLinks li a:hover {
-  color: #38bdf8;
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.navLinks li a:hover::after {
+  width: 80%;
 }
