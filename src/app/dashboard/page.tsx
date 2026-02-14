@@ -12,29 +12,71 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true)
   const router = useRouter()
 
+  // Load bookmarks and subscribe to real-time changes
   useEffect(() => {
-    const getUserAndBookmarks = async () => {
+    if (!supabase) return;
+
+    let channel: any;
+
+    const init = async () => {
       setLoading(true);
-      if (!supabase) {
-        alert('Supabase is not configured.')
-        setLoading(false);
-        return;
-      }
+
       const { data } = await supabase.auth.getUser();
+
       if (!data.user) {
         router.push('/');
         setLoading(false);
         return;
       }
+
+      const userId = data.user.id;
       setUser(data.user);
+
+      // Fetch initial bookmarks for this user
       const { data: bookmarksData } = await supabase
         .from('bookmarks')
         .select('*')
+        .eq('user_id', userId)
         .order('created_at', { ascending: false });
+
       setBookmarks(bookmarksData || []);
       setLoading(false);
+
+      // Subscribe to real-time changes on this user's bookmarks
+      channel = supabase
+        .channel('bookmarks-changes')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'bookmarks',
+            filter: `user_id=eq.${userId}`,
+          },
+          (payload) => {
+            if (payload.eventType === 'INSERT') {
+              setBookmarks((prev) => [payload.new, ...prev]);
+            } else if (payload.eventType === 'DELETE') {
+              setBookmarks((prev) =>
+                prev.filter((b) => b.id !== payload.old.id)
+              );
+            } else if (payload.eventType === 'UPDATE') {
+              setBookmarks((prev) =>
+                prev.map((b) => (b.id === payload.new.id ? payload.new : b))
+              );
+            }
+          }
+        )
+        .subscribe();
     };
-    getUserAndBookmarks();
+
+    init();
+
+    return () => {
+      if (channel) {
+        supabase.removeChannel(channel);
+      }
+    };
   }, [router]);
 
   const addBookmark = async () => {
@@ -51,14 +93,14 @@ export default function Dashboard() {
       {
         title,
         url: formattedUrl,
-        user_id: user.id,
+        user_id: user?.id,
       },
     ]);
 
     if (!error) {
+      // Clear inputs; the new bookmark will arrive via Realtime
       setTitle('');
       setUrl('');
-      location.reload();
     } else {
       alert(error.message);
     }
