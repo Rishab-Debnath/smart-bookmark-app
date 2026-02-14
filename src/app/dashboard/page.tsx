@@ -21,7 +21,7 @@ export default function Dashboard() {
     const init = async () => {
       setLoading(true);
 
-      const { data } = await supabase.auth.getUser();
+      const { data } = await supabase!.auth.getUser();
 
       if (!data.user) {
         router.push('/');
@@ -33,7 +33,7 @@ export default function Dashboard() {
       setUser(data.user);
 
       // Fetch initial bookmarks for this user
-      const { data: bookmarksData } = await supabase
+      const { data: bookmarksData } = await supabase!
         .from('bookmarks')
         .select('*')
         .eq('user_id', userId)
@@ -43,7 +43,7 @@ export default function Dashboard() {
       setLoading(false);
 
       // Subscribe to real-time changes on this user's bookmarks
-      channel = supabase
+      channel = supabase!
         .channel('bookmarks-changes')
         .on(
           'postgres_changes',
@@ -74,7 +74,7 @@ export default function Dashboard() {
 
     return () => {
       if (channel) {
-        supabase.removeChannel(channel);
+        supabase!.removeChannel(channel);
       }
     };
   }, [router]);
